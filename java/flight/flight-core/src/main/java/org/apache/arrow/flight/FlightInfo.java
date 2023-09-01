@@ -25,6 +25,7 @@ import java.nio.channels.Channels;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.arrow.flight.impl.Flight;
@@ -93,7 +94,6 @@ public class FlightInfo {
    */
   public FlightInfo(Schema schema, FlightDescriptor descriptor, List<FlightEndpoint> endpoints, long bytes,
                     long records, boolean ordered, IpcOption option) {
-    Objects.requireNonNull(schema);
     Objects.requireNonNull(descriptor);
     Objects.requireNonNull(endpoints);
     MetadataV4UnionChecker.checkForUnion(schema.getFields().iterator(), option.metadataVersion);
@@ -114,8 +114,10 @@ public class FlightInfo {
       final ByteBuffer schemaBuf = pbFlightInfo.getSchema().asReadOnlyByteBuffer();
       schema = pbFlightInfo.getSchema().size() > 0 ?
           MessageSerializer.deserializeSchema(
-              new ReadChannel(Channels.newChannel(new ByteBufferBackedInputStream(schemaBuf))))
-          : new Schema(ImmutableList.of());
+                          new ReadChannel(
+                                  Channels.newChannel(
+                                          new ByteBufferBackedInputStream(schemaBuf))))
+          : null;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -130,8 +132,8 @@ public class FlightInfo {
     option = IpcOption.DEFAULT;
   }
 
-  public Schema getSchema() {
-    return schema;
+  public Optional<Schema> getSchema() {
+    return Optional.ofNullable(schema);
   }
 
   public long getBytes() {
@@ -161,7 +163,10 @@ public class FlightInfo {
     // Encode schema in a Message payload
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     try {
-      MessageSerializer.serialize(new WriteChannel(Channels.newChannel(baos)), schema, option);
+      MessageSerializer.serialize(
+              new WriteChannel(Channels.newChannel(baos)),
+              schema != null ? schema : new Schema(ImmutableList.of()),
+              option);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

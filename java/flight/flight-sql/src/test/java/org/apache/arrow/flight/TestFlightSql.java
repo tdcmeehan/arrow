@@ -39,6 +39,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 import org.apache.arrow.flight.sql.FlightSqlClient;
@@ -177,13 +178,13 @@ public class TestFlightSql {
   @Test
   public void testGetTablesSchema() {
     final FlightInfo info = sqlClient.getTables(null, null, null, null, true);
-    MatcherAssert.assertThat(info.getSchema(), is(FlightSqlProducer.Schemas.GET_TABLES_SCHEMA));
+    MatcherAssert.assertThat(info.getSchema(), is(Optional.of(FlightSqlProducer.Schemas.GET_TABLES_SCHEMA)));
   }
 
   @Test
   public void testGetTablesSchemaExcludeSchema() {
     final FlightInfo info = sqlClient.getTables(null, null, null, null, false);
-    MatcherAssert.assertThat(info.getSchema(), is(FlightSqlProducer.Schemas.GET_TABLES_SCHEMA_NO_SCHEMA));
+    MatcherAssert.assertThat(info.getSchema(), is(Optional.of(FlightSqlProducer.Schemas.GET_TABLES_SCHEMA_NO_SCHEMA)));
   }
 
   @Test
@@ -364,7 +365,7 @@ public class TestFlightSql {
           },
           () -> {
             final FlightInfo info = preparedStatement.execute();
-            MatcherAssert.assertThat(info.getSchema(), is(SCHEMA_INT_TABLE));
+            MatcherAssert.assertThat(info.getSchema(), is(Optional.of(SCHEMA_INT_TABLE)));
           }
       );
     }
@@ -477,7 +478,7 @@ public class TestFlightSql {
   @Test
   public void testGetCatalogsSchema() {
     final FlightInfo info = sqlClient.getCatalogs();
-    MatcherAssert.assertThat(info.getSchema(), is(FlightSqlProducer.Schemas.GET_CATALOGS_SCHEMA));
+    MatcherAssert.assertThat(info.getSchema(), is(Optional.of(FlightSqlProducer.Schemas.GET_CATALOGS_SCHEMA)));
   }
 
   @Test
@@ -497,7 +498,7 @@ public class TestFlightSql {
   @Test
   public void testGetTableTypesSchema() {
     final FlightInfo info = sqlClient.getTableTypes();
-    MatcherAssert.assertThat(info.getSchema(), is(FlightSqlProducer.Schemas.GET_TABLE_TYPES_SCHEMA));
+    MatcherAssert.assertThat(info.getSchema(), is(Optional.of(FlightSqlProducer.Schemas.GET_TABLE_TYPES_SCHEMA)));
   }
 
   @Test
@@ -526,7 +527,7 @@ public class TestFlightSql {
   @Test
   public void testGetSchemasSchema() {
     final FlightInfo info = sqlClient.getSchemas(null, null);
-    MatcherAssert.assertThat(info.getSchema(), is(FlightSqlProducer.Schemas.GET_SCHEMAS_SCHEMA));
+    MatcherAssert.assertThat(info.getSchema(), is(Optional.of(FlightSqlProducer.Schemas.GET_SCHEMAS_SCHEMA)));
   }
 
   @Test
@@ -584,7 +585,7 @@ public class TestFlightSql {
   @Test
   public void testGetSqlInfoSchema() {
     final FlightInfo info = sqlClient.getSqlInfo();
-    MatcherAssert.assertThat(info.getSchema(), is(FlightSqlProducer.Schemas.GET_SQL_INFO_SCHEMA));
+    MatcherAssert.assertThat(info.getSchema(), is(Optional.of(FlightSqlProducer.Schemas.GET_SQL_INFO_SCHEMA)));
   }
 
   @Test
@@ -848,7 +849,7 @@ public class TestFlightSql {
   @Test
   public void testCreateStatementSchema() throws Exception {
     final FlightInfo info = sqlClient.execute("SELECT * FROM intTable");
-    MatcherAssert.assertThat(info.getSchema(), is(SCHEMA_INT_TABLE));
+    MatcherAssert.assertThat(info.getSchema(), is(Optional.of(SCHEMA_INT_TABLE)));
 
     // Consume statement to close connection before cache eviction
     try (FlightStream stream = sqlClient.getStream(info.getEndpoints().get(0).getTicket())) {

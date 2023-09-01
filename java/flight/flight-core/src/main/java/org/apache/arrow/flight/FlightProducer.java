@@ -77,7 +77,7 @@ public interface FlightProducer {
    */
   default SchemaResult getSchema(CallContext context, FlightDescriptor descriptor) {
     FlightInfo info = getFlightInfo(context, descriptor);
-    return new SchemaResult(info.getSchema());
+    return new SchemaResult(info.getSchema().orElse(null));
   }
 
 

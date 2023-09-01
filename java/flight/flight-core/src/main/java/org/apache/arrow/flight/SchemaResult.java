@@ -21,6 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
+import java.util.Optional;
 
 import org.apache.arrow.flight.impl.Flight;
 import org.apache.arrow.vector.ipc.ReadChannel;
@@ -52,13 +53,15 @@ public class SchemaResult {
    * Create a schema result with specific IPC options for serialization.
    */
   public SchemaResult(Schema schema, IpcOption option) {
-    MetadataV4UnionChecker.checkForUnion(schema.getFields().iterator(), option.metadataVersion);
+    if (schema != null) {
+      MetadataV4UnionChecker.checkForUnion(schema.getFields().iterator(), option.metadataVersion);
+    }
     this.schema = schema;
     this.option = option;
   }
 
-  public Schema getSchema() {
-    return schema;
+  public Optional<Schema> getSchema() {
+    return Optional.of(schema);
   }
 
   /**
@@ -68,7 +71,10 @@ public class SchemaResult {
     // Encode schema in a Message payload
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     try {
-      MessageSerializer.serialize(new WriteChannel(Channels.newChannel(baos)), schema, option);
+      MessageSerializer.serialize(
+              new WriteChannel(Channels.newChannel(baos)),
+              schema != null ? schema : new Schema(ImmutableList.of()),
+              option);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -87,7 +93,7 @@ public class SchemaResult {
       Schema schema = pbSchemaResult.getSchema().size() > 0 ?
               MessageSerializer.deserializeSchema(
                       new ReadChannel(Channels.newChannel(new ByteBufferBackedInputStream(schemaBuf))))
-              : new Schema(ImmutableList.of());
+              : null;
       return new SchemaResult(schema);
     } catch (IOException e) {
       throw new RuntimeException(e);

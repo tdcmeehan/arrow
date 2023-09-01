@@ -19,6 +19,7 @@ package org.apache.arrow.flight.integration.tests;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Optional;
 
 import org.apache.arrow.flight.CallOption;
 import org.apache.arrow.flight.FlightClient;
@@ -167,6 +168,6 @@ public class FlightSqlScenario implements Scenario {
   }
 
   protected void validateSchema(Schema expected, SchemaResult actual) {
-    IntegrationAssertions.assertEquals(expected, actual.getSchema());
+    IntegrationAssertions.assertEquals(Optional.of(expected), actual.getSchema());
   }
 }
